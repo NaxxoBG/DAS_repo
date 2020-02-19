@@ -32,9 +32,16 @@ WHERE
             MIN(sells.price)
         FROM
             sells);
+            
+-- Version 2, no aggregation
+select b.`code`, b.`name`, t.`name` as "store name"
+from (store t, sells s, beverage b)
+LEFT JOIN sells s2
+    ON s2.price < s.price
+	where b.`code` = s.`code` and s.store_name = t.name and s2.price is null;
 
 -- 6.For each store , give its name and the code(s) of the least expensive beverage(s) it sells.
-select a.store_name, a.`code`, a.price
+select a.store_name, a.`code`
 from sells a, store b, beverage c
 group by a.`store_name`, a.price
 having (a.price, a.store_name) in (select min(t.price), t.store_name from sells t, store g where t.`store_name` = g.`name` group by t.`store_name`)
@@ -51,20 +58,22 @@ group by a.`store_name`, a.price
 having (a.price, a.store_name) in (select min(t.price), t.store_name from sells t, store g where t.`store_name` = g.`name` group by t.`store_name`)
 order by a.price asc;
 
-	-- 7.2
-select a.`name`, c.`name`, b.price
-from store a, sells b, beverage c
-	inner join 
+-- 7.2
+select t.`name`, s.price, b.`name`, b.`code`
+from (store t, sells s, beverage b)
+LEFT JOIN sells s2
+    ON s2.price < s.price
+	where b.`code` = s.`code` and s.store_name = t.name and s2.price is null;
 
 -- 8. For each beverage, give its name, size, and its highest price across all stores. 
 -- Repeat, but now (i) include the name(s) of store(s) selling that beverage at the highest price, and (ii) 
 -- do not use any aggregation operations,such as MAX, GROUP BY, ORDER BY, etc.
 
-select c.`name`, c.size, a.price
-from beverage b, sells s
-group by a.`store_name`, a.price, c.size
-having (a.price, c.size, a.store_name) in (select max(t.price), t.store_name, i.size from sells t, store g, beverage i where t.`store_name` = g.`name` group by t.`store_name`)
-order by a.price desc;
+select c.`name`, b.size, s.price
+from beverage b, sells s, store c
+group by s.`store_name`, s.price, b.size
+having (s.price, b.size, s.store_name) in (select max(t.price), t.store_name, i.size from sells t, store g, beverage i where t.`store_name` = g.`name` group by t.`store_name`)
+order by s.price desc;
 
 -- 9. Find the names of the stores that offer all beverage codes; do not use COUNT.
 
