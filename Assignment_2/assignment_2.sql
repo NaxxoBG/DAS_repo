@@ -59,23 +59,41 @@ having (a.price, a.store_name) in (select min(t.price), t.store_name from sells 
 order by a.price asc;
 
 -- 7.2
-select t.`name`, s.price, b.`name`, b.`code`
-from (store t, sells s, beverage b)
-LEFT JOIN sells s2
-    ON s2.price < s.price
-	where b.`code` = s.`code` and s.store_name = t.name and s2.price is null;
+select t.`name`, s.price, b.`name`
+from store t, sells s, beverage b
+where b.`code` = s.`code` and s.`store_name` = t.`name`
+	and not exists (
+		select * from sells s1, beverage b1
+        where s1.`code` = b.`code` and
+			s1.price < s.price
+    );
 
 -- 8. For each beverage, give its name, size, and its highest price across all stores. 
 -- Repeat, but now (i) include the name(s) of store(s) selling that beverage at the highest price, and (ii) 
 -- do not use any aggregation operations,such as MAX, GROUP BY, ORDER BY, etc.
 
-select c.`name`, b.size, s.price
-from beverage b, sells s, store c
-group by s.`store_name`, s.price, b.size
-having (s.price, b.size, s.store_name) in (select max(t.price), t.store_name, i.size from sells t, store g, beverage i where t.`store_name` = g.`name` group by t.`store_name`)
-order by s.price desc;
+-- 8.1
+select b.`name`, b.size, max(s.price)
+from beverage b, sells s
+where b.`code` = s.`code`
+group by b.`name`;
+
+-- 8.2
+
 
 -- 9. Find the names of the stores that offer all beverage codes; do not use COUNT.
+select s.`name`
+from store s
+where not exists (
+	select * from beverage b 
+    where not exists (
+		select * from sells e
+		where e.`code` = b.`code` and e.`store_name` =  s.`name`));
 
 -- 10. Find the largest price difference between beverages of the same name across all stores, the name(s) of the beverage(s)
 -- having that price difference, and the relevant store(s).
+
+select b.`name`, abs(s.price - s1.price) as priceDifference, b.`name`, b1.`name`, s.store_name, s1.store_name
+from beverage b, sells s, beverage b1, sells s1, store t
+where b.code = s.code and b1.code = s1.code and t.name =  s.store_name
+group by priceDifference desc
