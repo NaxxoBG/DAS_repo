@@ -93,7 +93,7 @@ where not exists (
 -- 10. Find the largest price difference between beverages of the same name across all stores, the name(s) of the beverage(s)
 -- having that price difference, and the relevant store(s).
 
-select b.`name`, abs(s.price - s1.price) as priceDifference, b.`name`, b1.`name`, s.store_name, s1.store_name
+select abs(s.price - s1.price) as priceDifference, b.`name`, s.store_name, s1.store_name
 from beverage b, sells s, beverage b1, sells s1, store t
-where b.code = s.code and b1.code = s1.code and t.name =  s.store_name
-group by priceDifference desc
+where b.`code` = s.`code` and b1.`code` = s1.`code` and t.`name` =  s.store_name and b.`name` = b1.`name`
+group by priceDifference desc limit 1
