@@ -1,5 +1,5 @@
 -- 1. Find the names of beverages that are offered in 'maxi' size
-select name from beverage where size = 'large';
+select `name` from beverage where size = 'large';
 
 -- 2. Find the names of beverages that come in 'maxi' or 'medium' size
 select `name`, size from beverage where size = 'large' or size = 'medium';
@@ -41,11 +41,15 @@ LEFT JOIN sells s2
 	where b.`code` = s.`code` and s.store_name = t.name and s2.price is null;
 
 -- 6.For each store , give its name and the code(s) of the least expensive beverage(s) it sells.
-select a.store_name, a.`code`
-from sells a, store b, beverage c
-group by a.`store_name`, a.price
-having (a.price, a.store_name) in (select min(t.price), t.store_name from sells t, store g where t.`store_name` = g.`name` group by t.`store_name`)
-order by a.price;
+
+select t.`name`, s.price, b.`code`
+from store t, sells s, beverage b
+where b.`code` = s.`code` and s.`store_name` = t.`name`
+	and not exists (
+		select * from sells s1, beverage b1
+        where s1.`code` = b1.`code` and s1.store_name=t.`name` and
+			s1.price < s.price
+    );
 
 -- 7. For each store, give its name and the price of the least expensive beverage(s) it sells.
 -- Repeat, but now (i) include the name(s) of such beverage(s) and (ii) do not use any aggregation operations,
@@ -53,7 +57,7 @@ order by a.price;
 
 	-- 7.1
 select a.store_name, a.price
-from sells a, store b, beverage c
+from sells a, store b
 group by a.`store_name`, a.price
 having (a.price, a.store_name) in (select min(t.price), t.store_name from sells t, store g where t.`store_name` = g.`name` group by t.`store_name`)
 order by a.price asc;
@@ -64,7 +68,7 @@ from store t, sells s, beverage b
 where b.`code` = s.`code` and s.`store_name` = t.`name`
 	and not exists (
 		select * from sells s1, beverage b1
-        where s1.`code` = b.`code` and
+        where s1.`code` = b1.`code` and s1.store_name=t.`name` and
 			s1.price < s.price
     );
 
@@ -76,10 +80,17 @@ where b.`code` = s.`code` and s.`store_name` = t.`name`
 select b.`name`, b.size, max(s.price)
 from beverage b, sells s
 where b.`code` = s.`code`
-group by b.`name`;
+group by b.`name`, b.`code`;
 
 -- 8.2
-
+select b.`name`, b.size, s.price, t.`name`
+from store t, sells s, beverage b
+where b.`code` = s.`code` and s.`store_name` = t.`name`
+	and not exists (
+		select * from sells s1, store t1
+        where s1.`code` = b.`code` and s.store_name=t1.`name` and
+			s1.price > s.price
+    );
 
 -- 9. Find the names of the stores that offer all beverage codes; do not use COUNT.
 select s.`name`
