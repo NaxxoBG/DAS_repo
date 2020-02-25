@@ -2,7 +2,6 @@ SET FOREIGN_KEY_CHECKS=OFF;
 DROP TABLE IF EXISTS beverage;
 DROP TABLE IF EXISTS store;
 DROP TABLE IF EXISTS sells;
-
 SET FOREIGN_KEY_CHECKS=ON;
 
 create table `beverage` (
@@ -67,14 +66,10 @@ create table sells (
 	`store_name` varchar(15),
     `code` int,
     `price` numeric,
-    primary key (`store_name`, `code`)
+    primary key (`store_name`, `code`),
+    foreign key (`store_name`) references store(`name`),
+    foreign key (`code`) references beverage(`code`)
 );
-
-ALTER TABLE sells
-	ADD FOREIGN KEY (`store_name`) REFERENCES store(`name`);
-
-Alter table sells
-	add foreign key (`code`) references beverage(`code`);
 
 INSERT INTO sells values('REMA', 122, '10');
 INSERT INTO sells values('Fotex', 121, '15');
