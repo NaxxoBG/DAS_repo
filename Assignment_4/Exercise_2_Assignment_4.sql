@@ -57,6 +57,8 @@ insert into object values("kettle", "electronic device for boiling water");
 insert into object values("TV", "electronic device for watching content");
 insert into object values("router", "electronic device for setting up LANs");
 insert into object values("projector", "electronic device for projecting video content");
+insert into object values("mind", "some people have it");
+insert into object values("body", "some people don't have it");
 
 insert into relationship values ("driver", "driving", "car");
 insert into relationship values ("chef", "cooking with", "stove");
@@ -101,8 +103,8 @@ insert into relationship values ("Universe", " is the home of ", "Earth");
 insert into relationship values ("Earth", " is the home of ", "Universe");
 insert into relationship values ("mind", " is the home of the ", "body");
 insert into relationship values ("body", " is the home of the ", "mind");
-
-
+insert into relationship values ("body", " is the home z ", "mind");
+-- insert into relationship values ("mind", " is the home z ", "body");
 
 -- Q1
 select o.description
@@ -145,9 +147,16 @@ from object o
 where o.object not in (select r.object2 from relationship r);
 
 -- Q6
-
-select r.object1, r.object2
-from relationship r
-where (r.object1, r.relationship, r.object2) in (select * from relationship r where r.object1 = r.object2) and
-	(r.object1, r.relationship, r.object2) in (select * from relationship r where r.object2 = r.object1)
  
+SELECT distinct r.object1, r.object2
+FROM relationship r
+WHERE EXISTS (
+	select * from relationship r2 
+		where r2.object1 = r.object2 and r2.relationship = r.relationship and r2.object2 = r.object1
+        and not exists (
+			select * from relationship r3 where r2.object1 > r3.object1 and r2.object2 <= r3.object2
+        )
+	)
+	group by r.object1, r.relationship, r.object2
+	having (r.object1 <> r.object2)
+    
