@@ -1,0 +1,9 @@
+c,h,d,t,ch,cl,i,s,y,dt,r,ns
+
+c -> d,t,ch,cl,i
+c,h,s,y -> r,dt,ns,i
+r,dt,s,y -> i,c,h
+i -> d
+t -> ch,cl
+d,t -> i
+i,c -> d,t
